@@ -10,7 +10,7 @@ namespace App\Utils;use App\Models\User;use App\Models\Code;use App\Models\Payli
 						<img src="'.Config::get('zfbjk_qrcodeurl').'"/>
 ';}private static function f2fpay_html($a){$c=substr(md5($_SERVER['SERVER_NAME']),6,5);$d=Config::get("f2fpay_activate_key");if($d!=$c){return '
 						<p class="card-heading">使用支付宝充值</p>
-						<label for="number">您好像没有激活，请联系<a href="https://web.telegram.org/#/im?p=u369173679_3082441468848409198">秋名山飞车党</a>寻找激活码哦，点击查看<a href="https://91vps.club/2017/06/09/alipay_f2f_ss_panel_mod/">使用教程</a>。</label>
+						<label for="number">您好像没有激活，请联系<a href="https://t.me/gh012363">秋名山飞车党</a>寻找激活码哦，点击查看<a href="https://91vps.club/2017/06/09/alipay_f2f_ss_panel_mod/">使用教程</a>。</label>
 						<p></p>						
 ';}else{return '
 						<p class="card-heading">使用支付宝充值</p>
