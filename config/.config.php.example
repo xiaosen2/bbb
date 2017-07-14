@@ -19,7 +19,7 @@ $System_Config['tokenDriver'] = 'db';
 //$System_Config['version'] = '<a href="https://www.zhaoj.in">Glzjin</a> mod-2016042210000';
 
 // mu key 用于校验ss-go mu的请求,半角逗号分隔
-$System_Config['muKey'] = '';
+$System_Config['muKey'] = 'mmmwhy';
 // 邮件
 $System_Config['mailDriver'] = 'mailgun';   // mailgun or smtp or sendgrid
 
@@ -36,9 +36,9 @@ $System_Config['inviteNum'] = '0';
 # database 数据库配置
 $System_Config['db_driver'] = 'mysql';
 $System_Config['db_host'] = 'localhost';
-$System_Config['db_database'] = '';
-$System_Config['db_username'] = '';
-$System_Config['db_password'] = '';
+$System_Config['db_database'] = 'sspanel';
+$System_Config['db_username'] = 'root';
+$System_Config['db_password'] = 'root';
 $System_Config['db_charset'] = 'utf8';
 $System_Config['db_collation'] = 'utf8_general_ci';
 $System_Config['db_prefix'] = '';
@@ -168,10 +168,10 @@ $System_Config['jump_delay']='1800';
 
 
 #是否启用邀请码注册
-$System_Config['enable_invite_code']='true';
+$System_Config['enable_invite_code']='false';
 
 #是否启用邮箱验证码
-$System_Config['enable_email_verify']='true';
+$System_Config['enable_email_verify']='flase';
 
 #邮箱验证码有效期
 $System_Config['email_verify_ttl']='3600';
