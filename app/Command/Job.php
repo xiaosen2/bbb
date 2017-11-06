@@ -17,6 +17,7 @@ use App\Models\TrafficLog;
 use App\Models\DetectLog;
 use App\Models\BlockIp;
 use App\Models\TelegramSession;
+use App\Models\EmailVerify;
 use App\Services\Config;
 use App\Utils\Radius;
 use App\Utils\Wecenter;
@@ -139,6 +140,8 @@ class Job
         NodeOnlineLog::where("log_time", "<", time()-86400*3)->delete();
         TrafficLog::where("log_time", "<", time()-86400*3)->delete();
         DetectLog::where("datetime", "<", time()-86400*3)->delete();
+        Speedtest::where("datetime", "<", time()-86400*3)->delete();
+        EmailVerify::where("expire_in", "<", time()-86400*3)->delete();
         Telegram::Send("姐姐姐姐，数据库被清理了，感觉身体被掏空了呢~");
 
         //auto reset
@@ -159,28 +162,28 @@ class Job
             }
 
             if($shop->reset() != 0 && $shop->reset_value() != 0 && $shop->reset_exp() != 0) {
-              if(time() - $shop->reset_exp() * 86400 < $bought->datetime) {
-                if(intval((time() - $bought->datetime) / 86400) % $shop->reset() == 0 && intval((time() - $bought->datetime) / 86400) != 0) {
-                  echo("流量重置-".$user->id."\n");
-                  $user->transfer_enable = Tools::toGB($shop->reset_value());
-                  $user->u = 0;
-                  $user->d = 0;
-                  $user->last_day_t = 0;
-                  $user->save();
+                if(time() - $shop->reset_exp() * 86400 < $bought->datetime) {
+                    if(intval((time() - $bought->datetime) / 86400) % $shop->reset() == 0 && intval((time() - $bought->datetime) / 86400) != 0) {
+                        echo("流量重置-".$user->id."\n");
+                        $user->transfer_enable = Tools::toGB($shop->reset_value());
+                        $user->u = 0;
+                        $user->d = 0;
+                        $user->last_day_t = 0;
+                        $user->save();
 
-                  $subject = Config::get('appName')."-您的流量被重置了";
-                  $to = $user->email;
-                  $text = "您好，根据您所订购的订单 ID:".$bought->id."，流量已经被重置为".$shop->reset_value().'GB' ;
-                  try {
-                      Mail::send($to, $subject, 'news/warn.tpl', [
-                          "user" => $user,"text" => $text
-                      ], [
-                      ]);
-                  } catch (Exception $e) {
-                      echo $e->getMessage();
-                  }
+                        $subject = Config::get('appName')."-您的流量被重置了";
+                        $to = $user->email;
+                        $text = "您好，根据您所订购的订单 ID:".$bought->id."，流量已经被重置为".$shop->reset_value().'GB' ;
+                        try {
+                            Mail::send($to, $subject, 'news/warn.tpl', [
+                                "user" => $user,"text" => $text
+                            ], [
+                            ]);
+                        } catch (Exception $e) {
+                            echo $e->getMessage();
+                        }
+                    }
                 }
-              }
             }
 
         }
@@ -273,11 +276,17 @@ class Job
         //在线人数检测
         $users = User::where('node_connector', '>', 0)->get();
 
-        $full_alive_ips = Ip::where("datetime", ">=", time()-60)->get();
+        $full_alive_ips = Ip::where("datetime", ">=", time()-60)->orderBy("ip")->get();
 
         $alive_ipset = array();
 
         foreach ($full_alive_ips as $full_alive_ip) {
+            $full_alive_ip->ip = Tools::getRealIp($full_alive_ip->ip);
+            $is_node = Node::where("node_ip", $full_alive_ip->ip)->first();
+            if($is_node) {
+                continue;
+            }
+
             if (!isset($alive_ipset[$full_alive_ip->userid])) {
                 $alive_ipset[$full_alive_ip->userid] = new \ArrayObject();
             }
@@ -429,7 +438,7 @@ class Job
 
         $adminUser = User::where("is_admin", "=", "1")->get();
 
-        $latest_content = file_get_contents("https://github.com/esdeathlove/ss-panel-v3-mod/raw/new_master/bootstrap.php");
+        $latest_content = file_get_contents("https://raw.githubusercontent.com/mmmwhy/mod/master/bootstrap.php");
         $newmd5 = md5($latest_content);
         $oldmd5 = md5(file_get_contents(BASE_PATH."/bootstrap.php"));
 
@@ -444,7 +453,7 @@ class Job
                         echo "Send mail to user: ".$user->id;
                         $subject = Config::get('appName')."-系统提示";
                         $to = $user->email;
-                        $text = "管理员您好，系统发现有了新版本，您可以到 <a href=\"https://github.com/esdeathlove/ss-panel-v3-mod/wiki/%E6%9B%B4%E6%96%B0%E6%97%A5%E5%BF%97\">https://github.com/esdeathlove/ss-panel-v3-mod/wiki/%E6%9B%B4%E6%96%B0%E6%97%A5%E5%BF%97</a> 按照步骤进行升级。" ;
+                        $text = "管理员您好，系统发现有了新版本，您可以到 <a href=\"https://github.com/mmmwhy/mod\">https://github.com/mmmwhy/mod</a> 按照步骤进行升级。" ;
                         try {
                             Mail::send($to, $subject, 'news/warn.tpl', [
                                 "user" => $user,"text" => $text

