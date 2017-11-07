@@ -138,8 +138,24 @@
 									</div>
 								</div>
 							</div>
+          
+          					<div class="card">
+								<div class="card-main">
+									<div class="card-inner">
+											<h2 class="content-sub-heading">致谢</h2>
+											<p>本站使用<a href="http://blog.67cc.cn/archives/one-click-ssrv3-magic-revision-to-build-scripts-and-problems.html"> Marisn </a>教程搭建</p>
+									</div>
+								</div>
+							</div>
 
-
+	                        <div class="card">
+								<div class="card-main">
+									<div class="card-inner">
+											<h2 class="content-sub-heading">留言</h2>
+											<p>更多问题请留言:<a href="tencent://message/?uin=209224407&Site=junichi&Menu=yes">Marisn</a></p>
+									</div>
+								</div>
+							</div>
 
 						</section>
 
